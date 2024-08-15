@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "./Login.css";
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 
 
 function LoginPage() {
@@ -8,6 +9,51 @@ function LoginPage() {
     const [password, setPassword] = useState('');
     const [errors, setErrors] = useState([]);
     const [touched, setTouched] = useState({ email: false, password: false });
+
+    async function login() {
+        console.log(email, password);
+    
+        let url = 'http://localhost:3001/api/auth/login';
+        let params = {
+            action: "query", 
+            // meta: "tokens",
+            format: "json",
+            type: "login"
+        };
+    
+        try {
+            const response = await axios.get(url + '?' + new URLSearchParams(params).toString());
+            console.log(response);
+    
+            // Đây là cách lấy token từ phản hồi
+            // let loginToken = response.data.user.token;
+            // let cookie = response.headers['set-cookie']?.join(';') || '';
+    
+            let body = {
+                action: 'login',
+                lgemail: email,
+                lgpassword: password,
+                // lgtoken: loginToken,
+                format: 'json'
+            };
+            let bodyData = new URLSearchParams(body).toString();
+    
+            const result = await axios.post(url, bodyData, {
+                headers: {
+                    // 'Cookie': cookie,
+                }
+            });
+    
+            // let cookieResponse = result.headers['set-cookie']?.join(';') || '';
+            console.log(result.data);
+            console.log ('login successfully');
+            console.log (email, password);
+        } catch (error) {
+            console.error('Login error:', error);
+        }
+    }
+    
+
 
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -53,8 +99,8 @@ function LoginPage() {
         if (!password) {
             error.password = "Password is Required";
 
-        } else if (password.length < 8) {
-            error.password = "Password not Matched";
+        // } else if (password.length < 8) {
+        //     error.password = "Password not Matched";
         } else {
             error.password = "";
         }
@@ -89,7 +135,7 @@ function LoginPage() {
 
                 <input type="password" className={`input-password ${errors.password ? 'input-error' : ''}`} value={password} onChange={handlePasswordChange} placeholder="Your password" />
                 {errors.password && <div className='error'>{errors.password}</div>}
-                <button className="btn-Signin" type="submit">Sign in</button>
+                <button className="btn-Signin" type="submit" onClick={login}>Sign in</button>
 
             </form>
             <button>Forget Password</button>
